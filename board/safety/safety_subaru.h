@@ -204,7 +204,7 @@ static int subaru_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
   if (!relay_malfunction) {
     if (bus_num == 0) {
       // 313 is Brake_Pedal for Global
-      int block_msg = (addr == 313);
+      int block_msg = (addr == 0x139);
       if (!block_msg) {
         bus_fwd = 2;  // Camera CAN
       }
