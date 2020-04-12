@@ -9,7 +9,7 @@ const int SUBARU_DRIVER_TORQUE_ALLOWANCE = 60;
 const int SUBARU_DRIVER_TORQUE_FACTOR = 10;
 const int SUBARU_STANDSTILL_THRSLD = 20;  // about 1kph
 
-const AddrBus SUBARU_TX_MSGS[] = {{0x122, 0}, {0x221, 0}, {0x322, 0}, {0x220, 0}, {0x222, 0}, {0x240, 2}, {0x13c, 2}};
+const AddrBus SUBARU_TX_MSGS[] = {{0x122, 0}, {0x321, 0}, {0x322, 0}, {0x220, 0}, {0x221, 0}, {0x222, 0}, {0x240, 2}, {0x13c, 2}};
 const AddrBus SUBARU_L_TX_MSGS[] = {{0x164, 0}};
 const int SUBARU_TX_MSGS_LEN = sizeof(SUBARU_TX_MSGS) / sizeof(SUBARU_TX_MSGS[0]);
 const int SUBARU_L_TX_MSGS_LEN = sizeof(SUBARU_L_TX_MSGS) / sizeof(SUBARU_L_TX_MSGS[0]);
@@ -216,6 +216,7 @@ static int subaru_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
       // 0x220 is ES_Brake
       // 0x221 is ES_Distance
       // 0x222 is ES_Status
+      // 0x321 is ES_DashStatus
       // 0x322 is ES_LKAS_State
       // Pre-global platform:
       // 0x164 is ES_LKAS
@@ -223,6 +224,7 @@ static int subaru_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
                       ((addr == 0x220) && subaru_global) ||
                       ((addr == 0x221) && subaru_global) || 
                       ((addr == 0x222) && subaru_global) ||
+                      ((addr == 0x321) && subaru_global) ||
                       ((addr == 0x322) && subaru_global) ||
                       ((addr == 0x164) && !subaru_global);
       if (!block_msg) {
