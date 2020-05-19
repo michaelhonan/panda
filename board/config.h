@@ -8,7 +8,7 @@
 //#define DEBUG_FAULTS
 
 // Enable Subaru Giraffe relay control via L-line
-#define SUBARU_GIRAFFE
+// #define SUBARU_GIRAFFE
 
 #ifdef STM32F4
   #define PANDA
@@ -49,4 +49,3 @@
 #define CAN_INTERRUPT_RATE 12000U
 
 #endif
-
