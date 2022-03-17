@@ -1,4 +1,5 @@
 const int SUBARU_MAX_STEER = 2047; // 1s
+const int SUBARU_MAX_STEER_2018 = 3071; // Higher limit for some Impreza/Crosstrek
 // real time torque limit to prevent controls spamming
 // the real time limit is 1500/sec
 const int SUBARU_MAX_RT_DELTA = 940;          // max delta torque allowed for real time checks
@@ -36,6 +37,9 @@ AddrCheckStruct subaru_l_addr_checks[] = {
 };
 #define SUBARU_L_ADDR_CHECK_LEN (sizeof(subaru_l_addr_checks) / sizeof(subaru_l_addr_checks[0]))
 addr_checks subaru_l_rx_checks = {subaru_l_addr_checks, SUBARU_L_ADDR_CHECK_LEN};
+
+const uint16_t SUBARU_PARAM_MAX_STEER_2018 = 2;
+bool subaru_max_steer_2018 = false;
 
 static uint8_t subaru_get_checksum(CANPacket_t *to_push) {
   return (uint8_t)GET_BYTE(to_push, 0);
@@ -166,13 +170,23 @@ static int subaru_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
 
     if (controls_allowed) {
 
-      // *** global torque limit check ***
-      violation |= max_limit_check(desired_torque, SUBARU_MAX_STEER, -SUBARU_MAX_STEER);
+      if (subaru_max_steer_2018) {
+        // *** global torque limit check ***
+        violation |= max_limit_check(desired_torque, SUBARU_MAX_STEER_2018, -SUBARU_MAX_STEER_2018);
 
-      // *** torque rate limit check ***
-      violation |= driver_limit_check(desired_torque, desired_torque_last, &torque_driver,
-        SUBARU_MAX_STEER, SUBARU_MAX_RATE_UP, SUBARU_MAX_RATE_DOWN,
-        SUBARU_DRIVER_TORQUE_ALLOWANCE, SUBARU_DRIVER_TORQUE_FACTOR);
+        // *** torque rate limit check ***
+        violation |= driver_limit_check(desired_torque, desired_torque_last, &torque_driver,
+          SUBARU_MAX_STEER_2018, SUBARU_MAX_RATE_UP, SUBARU_MAX_RATE_DOWN,
+          SUBARU_DRIVER_TORQUE_ALLOWANCE, SUBARU_DRIVER_TORQUE_FACTOR);
+      } else {
+        // *** global torque limit check ***
+        violation |= max_limit_check(desired_torque, SUBARU_MAX_STEER, -SUBARU_MAX_STEER);
+
+        // *** torque rate limit check ***
+        violation |= driver_limit_check(desired_torque, desired_torque_last, &torque_driver,
+          SUBARU_MAX_STEER, SUBARU_MAX_RATE_UP, SUBARU_MAX_RATE_DOWN,
+          SUBARU_DRIVER_TORQUE_ALLOWANCE, SUBARU_DRIVER_TORQUE_FACTOR);
+      }
 
       // used next time
       desired_torque_last = desired_torque;
@@ -317,6 +331,7 @@ static const addr_checks* subaru_init(uint16_t param) {
   UNUSED(param);
   controls_allowed = false;
   relay_malfunction_reset();
+  subaru_max_steer_2018 = GET_FLAG(param, SUBARU_PARAM_MAX_STEER_2018);
   return &subaru_rx_checks;
 }
 
